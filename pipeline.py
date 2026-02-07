@@ -1,7 +1,6 @@
 import requests
 import duckdb
-from dagster import asset
-from dagster import AssetExecutionContext
+from dagster import AssetExecutionContext, ScheduleDefinition, Definitions, define_asset_job, asset
 
 
 # runs once when file loads
@@ -26,26 +25,25 @@ def crypto_prices(context: AssetExecutionContext):
     # print("Response ", response.json())
     response = response.json()
     data = [item for item in response if item["symbol"] in symbols]
-
-    for item in data:
-        print(item["symbol"], item["price"])
-        context.log.info(f"{item['symbol']}: {item['price']}")
     
     conn = duckdb.connect("crypto.db")
     for item in data:
-        if item["symbol"] in symbols:
-            conn.execute(
-                "INSERT INTO prices (currency, price) VALUES (?, ?)",
-                [item["symbol"], float(item["price"])]
-            )
+        print(item["symbol"], item["price"])
+        context.log.info(f"{item['symbol']}: {item['price']}")
+        if item["symbol"] in symbols and item.get("price") is not None:
+            price = float(item["price"])
+            if price > 0:
+                conn.execute(
+                    "INSERT INTO prices (currency, price) VALUES (?, ?)",
+                    [item["symbol"], float(item["price"])]
+                )
+            else:
+                context.log.warning(f"Skipping {item['symbol']} because price is not positive")
     conn.close()
     return data
 
 # TODO After this is done, for a certain change to send a message to a telegram channel (whatsapp?)
 
-
-
-from dagster import ScheduleDefinition, define_asset_job
 
 crypto_job = define_asset_job("crypto_job", selection="*")
 
@@ -55,8 +53,6 @@ crypto_schedule = ScheduleDefinition(
     cron_schedule="*/1 * * * *",  # every minute
 )
 
-
-from dagster import Definitions
 
 defs = Definitions(
     assets=[crypto_prices],
