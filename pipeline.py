@@ -1,7 +1,7 @@
 import requests
 import duckdb
 from dagster import AssetExecutionContext, ScheduleDefinition, Definitions, define_asset_job, asset
-
+from telegram import send_telegram
 
 # runs once when file loads
 conn = duckdb.connect("crypto.db")
@@ -26,6 +26,8 @@ def crypto_prices(context: AssetExecutionContext):
     response = response.json()
     data = [item for item in response if item["symbol"] in symbols]
     
+    telegram_message = ""
+    
     conn = duckdb.connect("crypto.db")
     for item in data:
         print(item["symbol"], item["price"])
@@ -37,8 +39,12 @@ def crypto_prices(context: AssetExecutionContext):
                     "INSERT INTO prices (currency, price) VALUES (?, ?)",
                     [item["symbol"], float(item["price"])]
                 )
+                telegram_message += f"{item['symbol']}: {price}\n"
             else:
                 context.log.warning(f"Skipping {item['symbol']} because price is not positive")
+                
+    send_telegram(f"{telegram_message}")
+        
     conn.close()
     return data
 
