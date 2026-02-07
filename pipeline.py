@@ -14,15 +14,15 @@ conn.execute("""
 """)
 conn.close()
 
-symbols = {"BTCUSDT", "ETHUSDT", "SOLUSDT"}
+# symbols = {"BTCUSDT", "ETHUSDT", "SOLUSDT"}
+symbols = {"BTCUSD",}
 api_url = "https://api.binance.com/api/v3/ticker/price"
 
 
 @asset
 def crypto_prices(context: AssetExecutionContext):
-    # your existing fetch + save logic
+    # Fetch + save logic
     response = requests.get(api_url)
-    # print("Response ", response.json())
     response = response.json()
     data = [item for item in response if item["symbol"] in symbols]
     
@@ -30,7 +30,6 @@ def crypto_prices(context: AssetExecutionContext):
     
     conn = duckdb.connect("crypto.db")
     for item in data:
-        print(item["symbol"], item["price"])
         context.log.info(f"{item['symbol']}: {item['price']}")
         if item["symbol"] in symbols and item.get("price") is not None:
             price = float(item["price"])
