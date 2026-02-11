@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 # --- Config ---
 
 SYMBOL = "BTCUSD"
-API_URL = f"https://api.binance.com/api/v3/ticker/price?symbol={SYMBOL}"
+API_URL = f"https://api.binance.us/api/v3/ticker/price?symbol={SYMBOL}"
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "crypto.db")
 
 ALERT_THRESHOLDS = [
@@ -132,10 +132,14 @@ def main():
     log.info("--- Starting application ---")
     log.info(f"Fetching {SYMBOL} from Binance...")
 
-    response = requests.get(API_URL, timeout=10) # 10-second cutoff
+    response = requests.get(API_URL, timeout=10)
     log.info(f"API response status: {response.status_code}")
-    item = response.json()
 
+    if response.status_code != 200:
+        log.error(f"API request failed (HTTP {response.status_code}): {response.text}")
+        return
+
+    item = response.json()
     log.info(f"{item['symbol']}: {item['price']}")
 
     if item.get("price") is None:
