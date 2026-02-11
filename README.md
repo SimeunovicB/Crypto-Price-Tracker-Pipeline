@@ -19,8 +19,6 @@ Alerts have a **1-hour cooldown** per window to prevent spam.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/SimeunovicB/Crypto-Price-Tracker-Pipeline.git
-cd Crypto-Price-Tracker-Pipeline
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
