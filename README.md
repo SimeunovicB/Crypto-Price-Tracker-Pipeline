@@ -93,7 +93,7 @@ crontab -e
 Add this line (adjust paths):
 
 ```
-*/1 * * * * cd /path/to/Crypto-Price-Tracker-Pipeline && /path/to/venv/bin/python main.py >> /var/log/crypto-pipeline.log 2>&1
+* * * * * cd /path/to/Crypto-Price-Tracker-Pipeline && /path/to/venv/bin/python main.py >> /home/${USERNAME}/crypto_bot.log 2>&1
 ```
 
 ---
@@ -102,7 +102,7 @@ Add this line (adjust paths):
 
 ```bash
 # Check logs
-tail -f /var/log/crypto-pipeline.log
+tail -f ~/crypto_bot.log
 
 # Verify cron is active
 crontab -l
@@ -127,5 +127,7 @@ conn.close()
 - **`main.py` vs `pipeline.py`**: Same logic, different wrappers. `main.py` is lightweight for production (cron), `pipeline.py` is for local dev with Dagster UI.
 - **Database**: `crypto.db` is auto-created on first run. Prices accumulate over time — alerts only work once enough historical data exists for each window (1h, 4h, 24h).
 - **Cooldown**: After an alert fires, that same window won't alert again for 1 hour (configurable via `COOLDOWN_HOURS` in the code).
+- Paths can depend on the environment
 
 ---
+
