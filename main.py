@@ -9,6 +9,7 @@ import os
 import duckdb
 import requests
 from dotenv import load_dotenv
+from healthcheck import send_heartbeat
 
 env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(env_path)
@@ -20,7 +21,6 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # --- Config ---
-
 SYMBOL = "BTCUSD"
 API_URL = f"https://api.binance.us/api/v3/ticker/price?symbol={SYMBOL}"
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "crypto.db")
@@ -33,8 +33,8 @@ ALERT_THRESHOLDS = [
 
 COOLDOWN_HOURS = 1
 
-# --- Telegram ---
 
+# --- Telegram ---
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
@@ -44,8 +44,8 @@ def send_telegram(message):
     requests.post(url, data={"chat_id": TELEGRAM_CHAT_ID, "text": message})
 
 
-# --- DB setup ---
 
+# --- DB setup ---
 def init_db(conn):
     conn.execute("""
         CREATE TABLE IF NOT EXISTS prices (
@@ -182,7 +182,10 @@ def main():
         log.info(f"No meaningful change for {SYMBOL} — no alert sent")
 
     conn.close()
+    log.info("--- Done ---")
 
 
 if __name__ == "__main__":
     main()
+    
+    send_heartbeat()

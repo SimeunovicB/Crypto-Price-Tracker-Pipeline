@@ -127,7 +127,20 @@ conn.close()
 - **`main.py` vs `pipeline.py`**: Same logic, different wrappers. `main.py` is lightweight for production (cron), `pipeline.py` is for local dev with Dagster UI.
 - **Database**: `crypto.db` is auto-created on first run. Prices accumulate over time — alerts only work once enough historical data exists for each window (1h, 4h, 24h).
 - **Cooldown**: After an alert fires, that same window won't alert again for 1 hour (configurable via `COOLDOWN_HOURS` in the code).
+- **Healthcheck**: Pings [healthchecks.io](https://healthchecks.io) after every successful run. If the pipeline stops running, you'll get notified. Set `HEALTHCHECK_URL` in `.env` (optional — skips gracefully if not set).
 - Paths can depend on the environment
 
 ---
 
+## Project Structure
+
+```
+├── main.py             # Production script (Python + cron)
+├── pipeline.py         # Local dev script (Dagster)
+├── telegram.py         # Telegram helper (used by pipeline.py)
+├── healthcheck.py      # Healthchecks.io ping
+├── crypto.db           # DuckDB database (auto-created)
+├── requirements.txt    # Python dependencies
+├── .env                # Credentials & config (not committed)
+└── .env.example        # Template for .env
+```
